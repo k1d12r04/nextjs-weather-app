@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+
 import {
   Form,
   FormControl,
@@ -12,11 +13,20 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 import axios, { AxiosResponse } from 'axios';
-import Image from 'next/image';
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ImageData {
   urls: {
@@ -34,15 +44,49 @@ export default function Home() {
   const [city, setCity] = useState<null | string>();
   const [weatherData, setWeatherData] = useState<any>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const weatherDescription = weatherData?.weather[0]?.description;
   const [weatherIconUrl, setWeatherIconUrl] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
+    const preferredLanguage = localStorage.getItem('preferredLanguage');
+    return preferredLanguage || '';
+  });
+
   const temperatureCelsius = weatherData?.main?.temp - 273.15;
+
+  const formLabelText =
+    (selectedLanguage === 'en' && 'City Name') ||
+    (selectedLanguage === 'tr' && 'Şehir ismi');
+
+  const formDescriptionText =
+    (selectedLanguage === 'en' &&
+      'Ones you provide a city name the instant weather situation will be shown.') ||
+    (selectedLanguage === 'tr' &&
+      'Herhangi bir şehir ismi girdiğinizde anlık hava durumu gösterilecek.');
+
+  const submitButtonText =
+    (selectedLanguage === 'en' && 'Show the weather') ||
+    (selectedLanguage === 'tr' && 'Hava durumunu göster');
+
+  const humidityText =
+    (selectedLanguage === 'en' && 'Humidity') ||
+    (selectedLanguage === 'tr' && 'Nem');
+
+  const handleLanguageChange = (value: string) => {
+    setSelectedLanguage(value);
+    localStorage.setItem('preferredLanguage', value);
+  };
+
+  useEffect(() => {
+    const preferredLanguage = localStorage.getItem('preferredLanguage');
+    if (preferredLanguage) {
+      setSelectedLanguage(preferredLanguage);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
       try {
         const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}&lang=${selectedLanguage}`
         );
         setWeatherData(response.data);
       } catch (error) {
@@ -51,7 +95,7 @@ export default function Home() {
     };
 
     fetchWeatherData();
-  }, [city, WEATHER_API_KEY]);
+  }, [city, WEATHER_API_KEY, selectedLanguage]);
 
   useEffect(() => {
     setWeatherIconUrl(
@@ -60,6 +104,7 @@ export default function Home() {
   }, [weatherData]);
 
   useEffect(() => {
+    const weatherDescription = weatherData?.weather[0]?.description;
     const fetchRandomImage = async () => {
       try {
         const baseUrl = 'https://api.unsplash.com/search/photos';
@@ -68,7 +113,7 @@ export default function Home() {
           client_id: ACCESS_KEY,
           query: weatherDescription,
           orientation: 'landscape',
-          per_page: '50',
+          per_page: '30',
         };
 
         const response: AxiosResponse<{ results: ImageData[] }> =
@@ -87,7 +132,7 @@ export default function Home() {
     };
 
     fetchRandomImage();
-  }, [ACCESS_KEY, weatherDescription]);
+  }, [ACCESS_KEY, city, weatherData]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -110,18 +155,16 @@ export default function Home() {
     return wordsUpper.join(' ');
   };
 
-  console.log(weatherData);
-
   return (
     <div
-      className="flex justify-center items-center w-full h-screen"
+      className="flex justify-center items-center w-full h-screen relative"
       style={{
         backgroundImage: ` ${weatherData && `url(${imageUrl})`} `,
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="max-w-sm mx-4">
+      <div className="max-w-md mx-4 bg-black/50 rounded-md p-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -129,17 +172,16 @@ export default function Home() {
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City Name</FormLabel>
+                  <FormLabel> {formLabelText} </FormLabel>
                   <FormControl>
                     <Input
-                      className="text-orange-950 font-medium focus-visible:!ring-0  ring-offset-purple-600 shadow-inputShadow"
+                      className="text-orange-950 font-medium focus-visible:!ring-0  ring-offset-teal-500 shadow-inputShadow"
                       placeholder="Enter a city name"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-white font-light">
-                    Ones you provide a city name the current weather situation
-                    will be shown.
+                    {formDescriptionText}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -149,7 +191,7 @@ export default function Home() {
               className="block mx-auto px-8 py-2 hover:bg-teal-900 transition"
               type="submit"
             >
-              Show me weather
+              {submitButtonText}
             </Button>
           </form>
         </Form>
@@ -157,11 +199,7 @@ export default function Home() {
         {weatherData && (
           <div className="mt-6 flex items-center justify-between">
             <div className="grid gap-2 justify-items-center">
-              <img
-                className="bg-black/10 rounded-md"
-                src={weatherIconUrl}
-                alt="weather icon"
-              />
+              <img src={weatherIconUrl || ''} alt="weather icon" />
               <p className="font-medium text-lg">
                 {temperatureCelsius.toFixed(1)}&deg;
               </p>
@@ -175,10 +213,43 @@ export default function Home() {
                   weatherData?.weather[0]?.description
                 )}{' '}
               </p>
-              <p>Humidity: {weatherData?.main?.humidity}%</p>
+              <p>
+                {humidityText}: {selectedLanguage === 'tr' && '%'}
+                {weatherData?.main?.humidity}
+                {selectedLanguage === 'en' && '%'}
+              </p>
             </div>
           </div>
         )}
+      </div>
+
+      <div className="absolute right-10 top-5 bg-black/50 rounded-md">
+        <Select onValueChange={handleLanguageChange}>
+          <SelectTrigger className="w-[100px] focus:!ring-offset-0 focus:!ring-0">
+            <SelectValue
+              placeholder={`${
+                (selectedLanguage === 'en' && 'English') ||
+                (selectedLanguage === 'tr' && 'Türkçe')
+              }`}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem
+                className="cursor-pointer !text-black hover:!bg-black/80 hover:!text-white transition"
+                value="tr"
+              >
+                Türkçe
+              </SelectItem>
+              <SelectItem
+                className="cursor-pointer !text-black hover:!bg-black/80 hover:!text-white transition"
+                value="en"
+              >
+                English
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
