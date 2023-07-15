@@ -92,18 +92,20 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}&lang=${selectedLanguage}`
-        );
-        setWeatherData(response.data);
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
+    if (city) {
+      const fetchWeatherData = async () => {
+        try {
+          const response = await axios.get(
+            `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}&lang=${selectedLanguage}`
+          );
+          setWeatherData(response.data);
+        } catch (error) {
+          console.log('Error:', error);
+        }
+      };
 
-    fetchWeatherData();
+      fetchWeatherData();
+    }
   }, [city, WEATHER_API_KEY, selectedLanguage]);
 
   useEffect(() => {
@@ -113,34 +115,37 @@ export default function Home() {
   }, [weatherData]);
 
   useEffect(() => {
-    const weatherDescription = weatherData?.weather[0]?.description;
-    const fetchRandomImage = async () => {
-      try {
-        const baseUrl = 'https://api.unsplash.com/search/photos';
+    if (city) {
+      const weatherDescription = weatherData?.weather[0]?.description;
 
-        const params = {
-          client_id: ACCESS_KEY,
-          query: weatherDescription,
-          orientation: 'landscape',
-          per_page: '30',
-        };
+      const fetchRandomImage = async () => {
+        try {
+          const baseUrl = 'https://api.unsplash.com/search/photos';
 
-        const response: AxiosResponse<{ results: ImageData[] }> =
-          await axios.get(baseUrl, { params });
+          const params = {
+            client_id: ACCESS_KEY,
+            query: weatherDescription,
+            orientation: 'landscape',
+            per_page: '30',
+          };
 
-        const results = response.data.results;
-        if (results.length > 0) {
-          const randomIndex = Math.floor(Math.random() * results.length);
-          const randomImage = results[randomIndex];
-          const imageUrl = randomImage.urls.regular;
-          setImageUrl(imageUrl);
+          const response: AxiosResponse<{ results: ImageData[] }> =
+            await axios.get(baseUrl, { params });
+
+          const results = response.data.results;
+          if (results.length > 0) {
+            const randomIndex = Math.floor(Math.random() * results.length);
+            const randomImage = results[randomIndex];
+            const imageUrl = randomImage.urls.regular;
+            setImageUrl(imageUrl);
+          }
+        } catch (error) {
+          console.log('Error:', error);
         }
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
+      };
 
-    fetchRandomImage();
+      fetchRandomImage();
+    }
   }, [ACCESS_KEY, city, weatherData]);
 
   const form = useForm<z.infer<typeof formSchema>>({
