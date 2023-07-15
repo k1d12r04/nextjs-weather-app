@@ -52,7 +52,7 @@ export default function Home() {
       typeof localStorage !== 'undefined'
         ? localStorage.getItem('preferredLanguage')
         : '';
-    return preferredLanguage || '';
+    return preferredLanguage || 'en';
   });
 
   const temperatureCelsius = weatherData?.main?.temp - 273.15;
