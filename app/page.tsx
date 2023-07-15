@@ -48,7 +48,10 @@ export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [weatherIconUrl, setWeatherIconUrl] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
-    const preferredLanguage = localStorage.getItem('preferredLanguage');
+    const preferredLanguage =
+      typeof localStorage !== 'undefined'
+        ? localStorage.getItem('preferredLanguage')
+        : '';
     return preferredLanguage || '';
   });
 
@@ -74,13 +77,17 @@ export default function Home() {
 
   const handleLanguageChange = (value: string) => {
     setSelectedLanguage(value);
-    localStorage.setItem('preferredLanguage', value);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('preferredLanguage', value);
+    }
   };
 
   useEffect(() => {
-    const preferredLanguage = localStorage.getItem('preferredLanguage');
-    if (preferredLanguage) {
-      setSelectedLanguage(preferredLanguage);
+    if (typeof localStorage !== 'undefined') {
+      const preferredLanguage = localStorage.getItem('preferredLanguage');
+      if (preferredLanguage) {
+        setSelectedLanguage(preferredLanguage);
+      }
     }
   }, []);
 
