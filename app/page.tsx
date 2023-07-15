@@ -28,6 +28,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 interface ImageData {
   urls: {
     regular: string;
@@ -162,9 +164,16 @@ export default function Home() {
         backgroundImage: ` ${weatherData && `url(${imageUrl})`} `,
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
+        backgroundColor: `${!weatherData && 'rgba(0,0,0,0.1)'} `,
       }}
     >
-      <div className="max-w-md mx-4 bg-black/50 rounded-md p-4">
+      <motion.div
+        key={weatherData?.id}
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: 1, scale: 1, transition: { duration: 0.5 } }}
+        exit={{ opacity: 0, scale: 0.3 }}
+        className="max-w-md mx-4 bg-black/50 rounded-md p-4"
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -176,7 +185,10 @@ export default function Home() {
                   <FormControl>
                     <Input
                       className="text-orange-950 font-medium focus-visible:!ring-0  ring-offset-teal-500 shadow-inputShadow"
-                      placeholder="Enter a city name"
+                      placeholder={`${
+                        (selectedLanguage === 'en' && 'Enter a city name') ||
+                        (selectedLanguage === 'tr' && 'Bir şehir ismi girin')
+                      }`}
                       {...field}
                     />
                   </FormControl>
@@ -196,34 +208,70 @@ export default function Home() {
           </form>
         </Form>
 
-        {weatherData && (
-          <div className="mt-6 flex items-center justify-between">
-            <div className="grid gap-2 justify-items-center">
-              <img src={weatherIconUrl || ''} alt="weather icon" />
-              <p className="font-medium text-lg">
-                {temperatureCelsius.toFixed(1)}&deg;
-              </p>
-            </div>
+        <AnimatePresence>
+          {weatherData && (
+            <div className="mt-6 flex items-center justify-between">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: -200 }} // Set initial position
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: 0,
+                  transition: { duration: 1 },
+                }}
+                exit={{ opacity: 0, scale: 0.5, x: -200 }}
+                className="grid gap-2 justify-items-center"
+              >
+                <img
+                  className="bg-white/70 rounded-md"
+                  src={weatherIconUrl || ''}
+                  alt="weather icon"
+                />
+                <p className="font-medium text-lg">
+                  {temperatureCelsius.toFixed(1)}&deg;
+                </p>
+              </motion.div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold text-xl"> {weatherData?.name} </h3>
-              <p>
-                {' '}
-                {capitalizeDescription(
-                  weatherData?.weather[0]?.description
-                )}{' '}
-              </p>
-              <p>
-                {humidityText}: {selectedLanguage === 'tr' && '%'}
-                {weatherData?.main?.humidity}
-                {selectedLanguage === 'en' && '%'}
-              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: 200 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: 0,
+                  transition: { duration: 1 },
+                }}
+                exit={{ opacity: 0, scale: 0.5, x: 200 }}
+                className="space-y-2"
+              >
+                <h3 className="font-semibold text-xl"> {weatherData?.name} </h3>
+                <p>
+                  {' '}
+                  {capitalizeDescription(
+                    weatherData?.weather[0]?.description
+                  )}{' '}
+                </p>
+                <p>
+                  {humidityText}: {selectedLanguage === 'tr' && '%'}
+                  {weatherData?.main?.humidity}
+                  {selectedLanguage === 'en' && '%'}
+                </p>
+              </motion.div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      <div className="absolute right-10 top-5 bg-black/50 rounded-md">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, x: -300 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          x: 0,
+        }}
+        className="absolute right-10 top-5 bg-black/50 rounded-md"
+      >
         <Select onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-[100px] focus:!ring-offset-0 focus:!ring-0">
             <SelectValue
@@ -250,7 +298,7 @@ export default function Home() {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </div>
+      </motion.div>
     </div>
   );
 }
