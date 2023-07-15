@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ImageData {
   urls: {
@@ -56,6 +57,9 @@ export default function Home() {
   });
 
   const temperatureCelsius = weatherData?.main?.temp - 273.15;
+
+  const [bgImageIsLoading, setBgImageIsLoading] = useState(false);
+  const [weatherDataIsLoading, setWeatherDataIsLoading] = useState(false);
 
   const formLabelText =
     (selectedLanguage === 'en' && 'City Name') ||
@@ -94,6 +98,7 @@ export default function Home() {
   useEffect(() => {
     if (city) {
       const fetchWeatherData = async () => {
+        setWeatherDataIsLoading(true);
         try {
           const response = await axios.get(
             `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}&lang=${selectedLanguage}`
@@ -101,6 +106,8 @@ export default function Home() {
           setWeatherData(response.data);
         } catch (error) {
           console.log('Error:', error);
+        } finally {
+          setWeatherDataIsLoading(false);
         }
       };
 
@@ -119,6 +126,7 @@ export default function Home() {
       const weatherDescription = weatherData?.weather[0]?.description;
 
       const fetchRandomImage = async () => {
+        setBgImageIsLoading(true);
         try {
           const baseUrl = 'https://api.unsplash.com/search/photos';
 
@@ -126,7 +134,7 @@ export default function Home() {
             client_id: ACCESS_KEY,
             query: weatherDescription,
             orientation: 'landscape',
-            per_page: '30',
+            per_page: '50',
           };
 
           const response: AxiosResponse<{ results: ImageData[] }> =
@@ -141,6 +149,8 @@ export default function Home() {
           }
         } catch (error) {
           console.log('Error:', error);
+        } finally {
+          setBgImageIsLoading(false);
         }
       };
 
@@ -170,20 +180,21 @@ export default function Home() {
   };
 
   return (
-    <div
-      className="flex justify-center items-center w-full h-screen relative"
-      style={{
-        backgroundImage: ` ${weatherData && `url(${imageUrl})`} `,
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundColor: `${!weatherData && 'rgba(0,0,0,0.1)'} `,
-      }}
-    >
+    <div className="flex justify-center items-center w-full h-screen relative">
+      {!bgImageIsLoading && !weatherDataIsLoading && (
+        <div
+          className="w-full h-screen absolute inset-0 -z-10"
+          style={{
+            backgroundImage: ` ${weatherData && `url(${imageUrl})`} `,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: `${!weatherData && 'rgba(0,0,0,0.1)'} `,
+          }}
+        ></div>
+      )}
+
       <motion.div
         key={weatherData?.id}
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1, transition: { duration: 0.5 } }}
-        exit={{ opacity: 0, scale: 0.3 }}
         className="max-w-md mx-4 bg-black/50 rounded-md p-4"
       >
         <Form {...form}>
@@ -221,10 +232,10 @@ export default function Home() {
         </Form>
 
         <AnimatePresence>
-          {weatherData && (
+          {weatherData && !weatherDataIsLoading ? (
             <div className="mt-6 flex items-center justify-between">
               <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: -200 }} // Set initial position
+                initial={{ opacity: 0, scale: 0.5, y: -200 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
@@ -232,7 +243,7 @@ export default function Home() {
                   y: 0,
                   transition: { duration: 1 },
                 }}
-                exit={{ opacity: 0, scale: 0.5, x: -200 }}
+                exit={{ opacity: 0, scale: 0.5, y: -200 }}
                 className="grid gap-2 justify-items-center"
               >
                 <img
@@ -246,7 +257,7 @@ export default function Home() {
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: 200 }}
+                initial={{ opacity: 0, scale: 0.5, y: 200 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
@@ -254,7 +265,7 @@ export default function Home() {
                   y: 0,
                   transition: { duration: 1 },
                 }}
-                exit={{ opacity: 0, scale: 0.5, x: 200 }}
+                exit={{ opacity: 0, scale: 0.5, y: 200 }}
                 className="space-y-2"
               >
                 <h3 className="font-semibold text-xl"> {weatherData?.name} </h3>
@@ -269,6 +280,41 @@ export default function Home() {
                   {weatherData?.main?.humidity}
                   {selectedLanguage === 'en' && '%'}
                 </p>
+              </motion.div>
+            </div>
+          ) : (
+            <div className="mt-6 flex items-center justify-between px-4 sm:px-8 ">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, y: -200 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: 0,
+                  transition: { duration: 1 },
+                }}
+                exit={{ opacity: 0, scale: 0.5, y: -200 }}
+                className="grid gap-2 justify-items-center"
+              >
+                <Skeleton className="bg-white/70 w-20 h-20 rounded-md" />
+                <Skeleton className="w-10 h-5"></Skeleton>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, y: 200 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  x: 0,
+                  y: 0,
+                  transition: { duration: 1 },
+                }}
+                exit={{ opacity: 0, scale: 0.5, y: 200 }}
+                className="space-y-2"
+              >
+                <Skeleton className="w-20 md:w-28 h-5"></Skeleton>
+                <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
+                <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
               </motion.div>
             </div>
           )}
