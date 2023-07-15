@@ -283,40 +283,42 @@ export default function Home() {
               </motion.div>
             </div>
           ) : (
-            <div className="mt-6 flex items-center justify-between px-4 sm:px-8 ">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5, y: -200 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: 0,
-                  y: 0,
-                  transition: { duration: 1 },
-                }}
-                exit={{ opacity: 0, scale: 0.5, y: -200 }}
-                className="grid gap-2 justify-items-center"
-              >
-                <Skeleton className="bg-white/70 w-20 h-20 rounded-md" />
-                <Skeleton className="w-10 h-5"></Skeleton>
-              </motion.div>
+            weatherDataIsLoading && (
+              <div className="mt-6 flex items-center justify-between px-4 sm:px-8 ">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, y: -200 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: 0,
+                    transition: { duration: 1 },
+                  }}
+                  exit={{ opacity: 0, scale: 0.5, y: -200 }}
+                  className="grid gap-2 justify-items-center"
+                >
+                  <Skeleton className="bg-white/70 w-20 h-20 rounded-md" />
+                  <Skeleton className="w-10 h-5"></Skeleton>
+                </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5, y: 200 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: 0,
-                  y: 0,
-                  transition: { duration: 1 },
-                }}
-                exit={{ opacity: 0, scale: 0.5, y: 200 }}
-                className="space-y-2"
-              >
-                <Skeleton className="w-20 md:w-28 h-5"></Skeleton>
-                <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
-                <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
-              </motion.div>
-            </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, y: 200 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: 0,
+                    transition: { duration: 1 },
+                  }}
+                  exit={{ opacity: 0, scale: 0.5, y: 200 }}
+                  className="space-y-2"
+                >
+                  <Skeleton className="w-20 md:w-28 h-5"></Skeleton>
+                  <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
+                  <Skeleton className="w-20 md:w-28 h-3"></Skeleton>
+                </motion.div>
+              </div>
+            )
           )}
         </AnimatePresence>
       </motion.div>
